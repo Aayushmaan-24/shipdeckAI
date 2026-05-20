@@ -1,38 +1,22 @@
-from typing import List, TypedDict, Annotated
+from typing import List, TypedDict, Annotated, Dict, Any
 from langgraph.graph import StateGraph, END
+from backend.app.agents.logic import (
+    repo_explorer_agent,
+    code_intelligence_agent,
+    business_strategist_agent,
+    deck_architect_agent,
+    visual_design_agent,
+    supervisor_agent
+)
 
 class AgentState(TypedDict):
     messages: Annotated[List[str], lambda x, y: x + y]
     repo_path: str
     code_summary: str
     business_narrative: str
-    deck_structure: List[dict]
+    deck_structure: List[Dict[str, Any]]
     visual_assets: List[str]
     next_step: str
-
-def repo_explorer_agent(state: AgentState):
-    print("--- REPO EXPLORER AGENT ---")
-    return {"messages": ["Explored repository structure."], "next_step": "code_intelligence"}
-
-def code_intelligence_agent(state: AgentState):
-    print("--- CODE INTELLIGENCE AGENT ---")
-    return {"messages": ["Analyzed code logic and features."], "next_step": "business_strategist"}
-
-def business_strategist_agent(state: AgentState):
-    print("--- BUSINESS STRATEGIST AGENT ---")
-    return {"messages": ["Synthesized business value proposition."], "next_step": "deck_architect"}
-
-def deck_architect_agent(state: AgentState):
-    print("--- DECK ARCHITECT AGENT ---")
-    return {"messages": ["Designed slide deck structure."], "next_step": "visual_design"}
-
-def visual_design_agent(state: AgentState):
-    print("--- VISUAL DESIGN AGENT ---")
-    return {"messages": ["Generated visual assets."], "next_step": "supervisor"}
-
-def supervisor_agent(state: AgentState):
-    print("--- SUPERVISOR AGENT ---")
-    return {"messages": ["Orchestrating workflow."], "next_step": "end"}
 
 def should_continue(state: AgentState):
     return state["next_step"]

@@ -3,6 +3,8 @@ uvicorn
 langgraph
 langchain
 groq
+langchain-groq
+langchain-google-genai
 python-dotenv
 pytest
 httpx
