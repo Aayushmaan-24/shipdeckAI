@@ -12,6 +12,10 @@ class GenerateRequest(BaseModel):
 
 
 async def generate_stream(github_url: str):
+    if not github_url.startswith("https://github.com/"):
+        yield f"data: {json.dumps({'error': 'Invalid GitHub URL. Must start with https://github.com/'})}\n\n"
+        return
+
     initial_state = {
         "messages": [f"Started generation for {github_url}"],
         "repo_path": github_url,
