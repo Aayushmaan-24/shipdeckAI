@@ -15,7 +15,7 @@ def test_workflow_execution(mock_gemini, mock_groq):
     mock_structured_llm = MagicMock()
     mock_pitch_deck = MagicMock()
     mock_slide = MagicMock()
-    mock_slide.dict.return_value = {"slide": 1, "title": "Title", "content": "Content"}
+    mock_slide.model_dump.return_value = {"slide": 1, "title": "Title", "content": "Content"}
     mock_pitch_deck.slides = [mock_slide] * 12
     mock_structured_llm.invoke.return_value = mock_pitch_deck
 
