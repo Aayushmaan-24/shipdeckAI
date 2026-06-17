@@ -1,12 +1,18 @@
+import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from backend.app.api import health, deck
 
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+# Load .env from root if backend/.env doesn't exist
+env_path = Path(__file__).resolve().parent.parent / ".env"
+if not env_path.exists():
+    env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+load_dotenv(env_path)
 
 app = FastAPI(title="ShipDeck API", version="1.0")
 
@@ -20,6 +26,14 @@ app.add_middleware(
 
 app.include_router(health.router, prefix="/api")
 app.include_router(deck.router, prefix="/api")
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"error": str(exc)},
+    )
 
 
 @app.get("/")
