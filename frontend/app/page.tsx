@@ -98,7 +98,13 @@ export default function Home() {
           const line = part.trim();
           if (!line.startsWith("data: ")) continue;
 
-          const payload = JSON.parse(line.slice(6)) as Record<string, unknown>;
+          let payload: Record<string, unknown>;
+          try {
+            payload = JSON.parse(line.slice(6)) as Record<string, unknown>;
+          } catch (e) {
+            console.error("Failed to parse SSE payload:", e);
+            continue;
+          }
 
           if ("error" in payload && typeof payload.error === "string") {
             throw new Error(payload.error);

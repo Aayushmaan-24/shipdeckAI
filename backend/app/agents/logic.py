@@ -62,6 +62,8 @@ def repo_explorer_agent(state: Dict[str, Any]) -> Dict[str, Any]:
                             "language": data.get("language"),
                             "stars": data.get("stargazers_count")
                         })
+                    else:
+                        github_metadata = f"GitHub API returned status code {resp.status_code}: {resp.text}"
             except Exception as e:
                 github_metadata = f"Error fetching GitHub metadata: {str(e)}"
 
