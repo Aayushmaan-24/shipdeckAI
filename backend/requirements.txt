@@ -8,3 +8,4 @@ langchain-google-genai
 python-dotenv
 pytest
 httpx
+python-pptx
