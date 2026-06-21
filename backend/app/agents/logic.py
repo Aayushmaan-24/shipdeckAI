@@ -27,7 +27,7 @@ def get_groq_llm(model_name="llama-3.3-70b-versatile"):
         groq_api_key=api_key
     )
 
-def get_gemini_llm(model_name="gemini-1.5-flash"):
+def get_gemini_llm(model_name="gemini-1.5-flash-latest"):
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
         raise ValueError("GOOGLE_API_KEY environment variable is not set. Please add it to your .env file.")
@@ -165,26 +165,6 @@ def deck_architect_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "messages": [f"Deck Architect: Designed {len(deck_structure)} slides."],
         "deck_structure": deck_structure,
-        "next_step": "visual_design"
-    }
-
-def visual_design_agent(state: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generates diagrams, icons, and layout specifications.
-    """
-    llm = get_groq_llm()
-    if llm:
-        response = llm.invoke([
-            SystemMessage(content="You are a Visual Design Agent. Define assets for a pitch deck."),
-            HumanMessage(content="Suggest 3 key visual assets for a professional pitch deck.")
-        ])
-        visual_assets = [response.content[:50]]
-    else:
-        visual_assets = ["branding_kit.zip", "charts.svg"]
-
-    return {
-        "messages": ["Visual Design: Generated visual specifications."],
-        "visual_assets": visual_assets,
         "next_step": "supervisor"
     }
 

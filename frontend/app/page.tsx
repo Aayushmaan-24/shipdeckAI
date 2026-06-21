@@ -53,6 +53,36 @@ export default function Home() {
   const [progress, setProgress] = useState<string[]>([]);
   const [slides, setSlides] = useState<Slide[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  async function handleDownload() {
+    if (slides.length === 0) return;
+    setIsDownloading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/download`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slides }),
+      });
+
+      if (!response.ok) throw new Error("Download failed");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "pitch_deck.pptx";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("Download error:", err);
+      alert("Failed to download PowerPoint file.");
+    } finally {
+      setIsDownloading(false);
+    }
+  }
 
   async function handleGenerate() {
     const url = githubUrl.trim();
@@ -215,10 +245,22 @@ export default function Home() {
           </section>
         )}
 
-        {status === "done" && slides.length === 0 && (
-          <p className="mt-6 text-center text-slate-400">
-            Generation finished but no slides were returned.
-          </p>
+        {status === "done" && (
+          <div className="mt-8 flex justify-center">
+            {slides.length > 0 ? (
+              <button
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="rounded-lg bg-green-600 px-8 py-4 text-lg font-bold hover:bg-green-500 disabled:opacity-50 transition-colors shadow-lg"
+              >
+                {isDownloading ? "Preparing PPT..." : "Download Pitch Deck (PPTX)"}
+              </button>
+            ) : (
+              <p className="text-slate-400">
+                Generation finished but no slides were returned.
+              </p>
+            )}
+          </div>
         )}
       </main>
     </div>

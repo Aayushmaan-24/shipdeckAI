@@ -1,14 +1,20 @@
 import json
+from typing import List, Dict, Any
 from fastapi import APIRouter
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel
 from backend.app.agents.workflow import app as workflow_app
+from backend.app.utils.pptx_gen import generate_pptx
 
 router = APIRouter()
 
 
 class GenerateRequest(BaseModel):
     github_url: str
+
+
+class DownloadRequest(BaseModel):
+    slides: List[Dict[str, Any]]
 
 
 async def generate_stream(github_url: str):
@@ -22,7 +28,6 @@ async def generate_stream(github_url: str):
         "code_summary": "",
         "business_narrative": "",
         "deck_structure": [],
-        "visual_assets": [],
         "next_step": "",
     }
 
@@ -38,4 +43,16 @@ async def generate_deck(request: GenerateRequest):
     return StreamingResponse(
         generate_stream(request.github_url),
         media_type="text/event-stream",
+    )
+
+
+@router.post("/download")
+async def download_pptx(request: DownloadRequest):
+    pptx_io = generate_pptx(request.slides)
+    return Response(
+        content=pptx_io.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        headers={
+            "Content-Disposition": "attachment; filename=pitch_deck.pptx"
+        }
     )
