@@ -13,3 +13,5 @@ node_modules/
 dist/
 build/
 .DS_Store
+backend/.env.example
+frontend/.env.local.example
