@@ -27,7 +27,7 @@ def get_groq_llm(model_name="llama-3.3-70b-versatile"):
         groq_api_key=api_key
     )
 
-def get_gemini_llm(model_name="gemini-1.5-flash-latest"):
+def get_gemini_llm(model_name="gemini-1.5-flash"):
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
         raise ValueError("GOOGLE_API_KEY environment variable is not set. Please add it to your .env file.")
@@ -142,28 +142,39 @@ class PitchDeck(BaseModel):
 def deck_architect_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     """
     Defines the structure and content of each slide (12-16 slides).
-    Uses structured output for reliability.
+    Uses structured output for reliability. Fallbacks to Groq if Gemini fails.
     """
     narrative = state.get("business_narrative", "")
-    llm = get_gemini_llm()
 
-    if llm:
+    # Primary: Gemini
+    try:
+        llm = get_gemini_llm()
         structured_llm = llm.with_structured_output(PitchDeck)
         prompt = f"Based on this narrative: '{narrative}', create a detailed investor pitch deck with 12-16 slides."
+        result = structured_llm.invoke([
+            SystemMessage(content="You are a Deck Architect specialized in structured investor pitches."),
+            HumanMessage(content=prompt)
+        ])
+        deck_structure = [slide.model_dump() for slide in result.slides]
+        source = "Gemini"
+    except Exception as gemini_err:
+        # Fallback: Groq
         try:
+            llm = get_groq_llm()
+            structured_llm = llm.with_structured_output(PitchDeck)
+            prompt = f"Based on this narrative: '{narrative}', create a detailed investor pitch deck with 12-16 slides."
             result = structured_llm.invoke([
                 SystemMessage(content="You are a Deck Architect specialized in structured investor pitches."),
                 HumanMessage(content=prompt)
             ])
             deck_structure = [slide.model_dump() for slide in result.slides]
-        except Exception as e:
-            # Fallback
-            deck_structure = [{"slide": i+1, "title": f"Slide {i+1}", "content": f"Error: {str(e)}"} for i in range(12)]
-    else:
-        deck_structure = [{"slide": i+1, "title": f"Slide {i+1}", "content": "Draft content"} for i in range(12)]
+            source = f"Groq (Gemini failed: {str(gemini_err)[:100]}...)"
+        except Exception as groq_err:
+            deck_structure = [{"slide": i+1, "title": f"Slide {i+1}", "content": f"Critical Error: Gemini failed ({str(gemini_err)[:50]}) and Groq failed ({str(groq_err)[:50]})"} for i in range(12)]
+            source = "Error Fallback"
 
     return {
-        "messages": [f"Deck Architect: Designed {len(deck_structure)} slides."],
+        "messages": [f"Deck Architect: Designed {len(deck_structure)} slides using {source}."],
         "deck_structure": deck_structure,
         "next_step": "supervisor"
     }
