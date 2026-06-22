@@ -27,7 +27,7 @@ def get_groq_llm(model_name="llama-3.3-70b-versatile"):
         groq_api_key=api_key
     )
 
-def get_gemini_llm(model_name="gemini-1.5-flash-latest"):
+def get_gemini_llm(model_name="gemini-1.5-flash"):
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
         raise ValueError("GOOGLE_API_KEY environment variable is not set. Please add it to your .env file.")
@@ -145,7 +145,7 @@ def deck_architect_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     Uses structured output for reliability.
     """
     narrative = state.get("business_narrative", "")
-    llm = get_gemini_llm()
+    llm = get_groq_llm()
 
     if llm:
         structured_llm = llm.with_structured_output(PitchDeck)
