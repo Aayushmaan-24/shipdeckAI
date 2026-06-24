@@ -28,18 +28,16 @@ def test_generate_pptx_properties():
     TEXT_DIM_EXPECTED = RGBColor(203, 213, 225)
 
     for i, slide in enumerate(prs.slides):
-        # 1. Check background rectangle
-        bg_rect = slide.shapes[0]
-        assert bg_rect.fill.fore_color.rgb == BG_COLOR_EXPECTED
-        assert bg_rect.line.fill.type is None or bg_rect.line.fill.type == 0 # no fill
+        # 1. Check background
+        assert slide.background.fill.fore_color.rgb == BG_COLOR_EXPECTED
 
-        # 2. Check accent bar
-        accent_bar = slide.shapes[1]
+        # 2. Check accent bar (it's the first shape now)
+        accent_bar = slide.shapes[0]
         assert accent_bar.fill.fore_color.rgb == ACCENT_COLOR_EXPECTED
 
         if i == 0:
             # Title slide
-            title_box = slide.shapes[2]
+            title_box = slide.shapes[1]
             title_frame = title_box.text_frame
             assert title_frame.word_wrap is True
 
@@ -49,16 +47,22 @@ def test_generate_pptx_properties():
             assert p.font.color.rgb == TEXT_MAIN_EXPECTED
 
             # Subtitle
-            subtitle_box = slide.shapes[3]
+            subtitle_box = slide.shapes[2]
             assert subtitle_box.text_frame.paragraphs[0].text == "Welcome to ShipDeck Subtitle"
             assert subtitle_box.text_frame.paragraphs[0].font.size == Pt(24)
         elif i == 1:
             # Content slide
-            title_box = slide.shapes[2]
+            # Title
+            title_box = slide.shapes[1]
             assert title_box.text_frame.paragraphs[0].text == "Features"
             assert title_box.text_frame.paragraphs[0].font.size == Pt(32)
             assert title_box.text_frame.paragraphs[0].font.color.rgb == TEXT_MAIN_EXPECTED
 
+            # Title accent line (new)
+            title_line = slide.shapes[2]
+            assert title_line.fill.fore_color.rgb == ACCENT_COLOR_EXPECTED
+
+            # Content
             content_box = slide.shapes[3]
             content_frame = content_box.text_frame
             assert content_frame.word_wrap is True
@@ -68,7 +72,7 @@ def test_generate_pptx_properties():
             assert content_frame.paragraphs[0].level == 1
         elif i == 2:
             # Fallback title
-            title_box = slide.shapes[2]
+            title_box = slide.shapes[1]
             assert title_box.text_frame.paragraphs[0].text == "Slide 3"
 
 if __name__ == "__main__":
