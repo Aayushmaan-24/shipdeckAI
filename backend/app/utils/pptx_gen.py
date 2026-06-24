@@ -31,13 +31,8 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
         slide = prs.slides.add_slide(slide_layout)
 
         # 1. Background
-        background = slide.shapes.add_shape(
-            1, # Rectangle
-            0, 0, prs.slide_width, prs.slide_height
-        )
-        background.fill.solid()
-        background.fill.fore_color.rgb = BG_COLOR
-        background.line.no_fill = True # No border
+        slide.background.fill.solid()
+        slide.background.fill.fore_color.rgb = BG_COLOR
 
         # 2. Accent Bar at the bottom
         accent_bar = slide.shapes.add_shape(
@@ -80,7 +75,7 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
             # Content Slide Layout
             # Title
             title_box = slide.shapes.add_textbox(
-                Inches(0.5), Inches(0.4), prs.slide_width - Inches(1), Inches(1)
+                Inches(0.5), Inches(0.2), prs.slide_width - Inches(1), Inches(0.8)
             )
             title_frame = title_box.text_frame
             title_frame.word_wrap = True
@@ -92,9 +87,18 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
             p.font.color.rgb = TEXT_MAIN
             p.alignment = PP_ALIGN.LEFT
 
+            # Title underline/accent
+            title_line = slide.shapes.add_shape(
+                1, # Rectangle
+                Inches(0.5), Inches(0.9), Inches(2), Inches(0.03)
+            )
+            title_line.fill.solid()
+            title_line.fill.fore_color.rgb = ACCENT_COLOR
+            title_line.line.no_fill = True
+
             # Content
             content_box = slide.shapes.add_textbox(
-                Inches(0.5), Inches(1.5), prs.slide_width - Inches(1), prs.slide_height - Inches(2)
+                Inches(0.5), Inches(1.2), prs.slide_width - Inches(1), prs.slide_height - Inches(1.8)
             )
             content_frame = content_box.text_frame
             content_frame.word_wrap = True

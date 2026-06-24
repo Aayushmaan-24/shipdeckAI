@@ -2,6 +2,7 @@ import os
 import json
 import re
 import httpx
+import base64
 from typing import List, Dict, Any
 from pydantic import BaseModel, Field
 
@@ -44,15 +45,18 @@ def repo_explorer_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     repo_path = state.get("repo_path", "unknown")
 
     github_metadata = ""
+    readme_content = ""
     if "github.com" in repo_path:
         match = re.search(r"github\.com/([^/]+)/([^/]+)", repo_path)
         if match:
             owner, repo = match.groups()
             repo = repo.split("?")[0].split("#")[0].replace(".git", "")
-            api_url = f"https://api.github.com/repos/{owner}/{repo}"
+            base_url = f"https://api.github.com/repos/{owner}/{repo}"
+
             try:
                 with httpx.Client() as client:
-                    resp = client.get(api_url, timeout=10.0)
+                    # Fetch basic metadata
+                    resp = client.get(base_url, timeout=10.0)
                     if resp.status_code == 200:
                         data = resp.json()
                         github_metadata = json.dumps({
@@ -62,17 +66,27 @@ def repo_explorer_agent(state: Dict[str, Any]) -> Dict[str, Any]:
                             "language": data.get("language"),
                             "stars": data.get("stargazers_count")
                         })
-                    else:
-                        github_metadata = f"GitHub API returned status code {resp.status_code}: {resp.text}"
+
+                    # Fetch README content
+                    readme_resp = client.get(f"{base_url}/readme", timeout=10.0)
+                    if readme_resp.status_code == 200:
+                        readme_data = readme_resp.json()
+                        content_encoded = readme_data.get("content", "")
+                        if content_encoded:
+                            readme_content = base64.b64decode(content_encoded).decode("utf-8", errors="ignore")
+                            # Truncate README if it's too long (e.g., first 5000 chars)
+                            readme_content = readme_content[:5000]
             except Exception as e:
-                github_metadata = f"Error fetching GitHub metadata: {str(e)}"
+                github_metadata = f"Error fetching GitHub data: {str(e)}"
 
     llm = get_groq_llm()
     if llm:
         prompt = (
-            f"You are a Repo Explorer Agent. Analyze this GitHub URL: {repo_path}. "
-            f"GitHub API Metadata: {github_metadata}\n\n"
-            "Identify tech stack, project structure, and key entry points."
+            f"You are a Repo Explorer Agent. Analyze this GitHub URL: {repo_path}.\n"
+            f"GitHub API Metadata: {github_metadata}\n"
+            f"README Content (partial): {readme_content}\n\n"
+            "Identify tech stack, project structure, and key entry points. "
+            "USE THE PROVIDED README CONTENT TO AVOID HALLUCINATIONS."
         )
         response = llm.invoke([
             SystemMessage(content="You are a senior software architect analyzing codebases."),

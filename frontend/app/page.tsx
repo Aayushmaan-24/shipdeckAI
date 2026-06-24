@@ -226,19 +226,27 @@ export default function Home() {
             <h2 className="text-lg font-semibold mb-3">
               Pitch deck ({slides.length} slides)
             </h2>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-2">
               {slides.map((slide) => (
                 <article
                   key={slide.slide}
-                  className="rounded-xl border border-slate-800 bg-slate-900/50 p-5 text-left"
+                  className="aspect-video relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950 p-6 text-left shadow-2xl transition-transform hover:scale-[1.02]"
                 >
-                  <span className="text-xs font-medium text-blue-500">
-                    Slide {slide.slide}
-                  </span>
-                  <h3 className="mt-1 text-lg font-bold">{slide.title}</h3>
-                  <p className="mt-2 text-sm text-slate-300 whitespace-pre-wrap">
-                    {slide.content}
-                  </p>
+                  {/* Decorative accent line matching PPTX */}
+                  <div className="absolute top-0 left-0 h-1 w-full bg-blue-600" />
+
+                  <div className="h-full flex flex-col">
+                    <h3 className="text-xl font-bold text-white mb-2 line-clamp-1 border-b border-slate-800 pb-2">
+                      {slide.title}
+                    </h3>
+                    <p className="flex-1 text-sm text-slate-300 whitespace-pre-wrap overflow-hidden line-clamp-[8]">
+                      {slide.content}
+                    </p>
+                    <div className="mt-auto pt-4 flex justify-between items-end">
+                       <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">ShipDeck Pitch</span>
+                       <span className="text-[10px] text-slate-500">Slide {slide.slide}</span>
+                    </div>
+                  </div>
                 </article>
               ))}
             </div>
