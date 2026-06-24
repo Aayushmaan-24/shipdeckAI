@@ -25,6 +25,7 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
         # Restore fallback for title
         title_str = slide_data.get("title") or f"Slide {i+1}"
         content_str = slide_data.get("content", "")
+        layout_type = slide_data.get("layout_type", "text")
 
         # Use a blank layout for maximum control
         slide_layout = prs.slide_layouts[6]
@@ -53,10 +54,12 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
             title_frame.word_wrap = True
 
             p = title_frame.paragraphs[0]
-            p.text = title_str
-            p.font.size = Pt(48)
-            p.font.bold = True
-            p.font.color.rgb = TEXT_MAIN
+            # Set color at RUN level for extra safety
+            run = p.add_run()
+            run.text = title_str
+            run.font.size = Pt(48)
+            run.font.bold = True
+            run.font.color.rgb = TEXT_MAIN
             p.alignment = PP_ALIGN.CENTER
 
             # Subtitle / Content on Title Slide
@@ -67,9 +70,10 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
                 subtitle_frame = subtitle_box.text_frame
                 subtitle_frame.word_wrap = True
                 p_sub = subtitle_frame.paragraphs[0]
-                p_sub.text = content_str
-                p_sub.font.size = Pt(24)
-                p_sub.font.color.rgb = TEXT_DIM
+                run_sub = p_sub.add_run()
+                run_sub.text = content_str
+                run_sub.font.size = Pt(24)
+                run_sub.font.color.rgb = TEXT_DIM
                 p_sub.alignment = PP_ALIGN.CENTER
         else:
             # Content Slide Layout
@@ -81,10 +85,11 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
             title_frame.word_wrap = True
 
             p = title_frame.paragraphs[0]
-            p.text = title_str
-            p.font.size = Pt(32)
-            p.font.bold = True
-            p.font.color.rgb = TEXT_MAIN
+            run = p.add_run()
+            run.text = title_str
+            run.font.size = Pt(32)
+            run.font.bold = True
+            run.font.color.rgb = TEXT_MAIN
             p.alignment = PP_ALIGN.LEFT
 
             # Title underline/accent
@@ -96,34 +101,93 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
             title_line.fill.fore_color.rgb = ACCENT_COLOR
             title_line.line.no_fill = True
 
-            # Content
-            content_box = slide.shapes.add_textbox(
-                Inches(0.5), Inches(1.2), prs.slide_width - Inches(1), prs.slide_height - Inches(1.8)
-            )
-            content_frame = content_box.text_frame
-            content_frame.word_wrap = True
+            if layout_type == "architecture":
+                # Render simple architecture diagram
+                components = [line.strip() for line in content_str.split('\n') if line.strip()]
+                if len(components) > 3:
+                    box_width = Inches(2)
+                    box_height = Inches(1)
+                    start_x = Inches(0.5)
+                    start_y = Inches(2.5)
+                    spacing = Inches(0.5)
 
-            lines = content_str.split('\n')
-            for j, line in enumerate(lines):
-                line_text = line.strip()
-                if not line_text and j > 0: continue # Skip empty lines except possibly first
+                    for j, comp in enumerate(components[:4]):
+                        shape = slide.shapes.add_shape(
+                            1, # Rectangle
+                            start_x + (box_width + spacing) * j, start_y, box_width, box_height
+                        )
+                        shape.fill.solid()
+                        shape.fill.fore_color.rgb = ACCENT_COLOR
+                        shape.line.color.rgb = TEXT_MAIN
 
-                if j == 0:
-                    p = content_frame.paragraphs[0]
+                        tf = shape.text_frame
+                        tf.text = comp
+                        tf.paragraphs[0].font.size = Pt(14)
+                        tf.paragraphs[0].font.color.rgb = TEXT_MAIN
+                        tf.paragraphs[0].alignment = PP_ALIGN.CENTER
                 else:
-                    p = content_frame.add_paragraph()
+                    layout_type = "text" # fallback
 
-                # Basic bullet indentation logic
-                if line_text.startswith(('-', '*', '•')):
-                    p.level = 1
-                    p.text = line_text[1:].strip()
-                else:
-                    p.level = 0
-                    p.text = line_text
+            if layout_type == "grid":
+                # Render cards
+                items = [line.strip() for line in content_str.split('\n') if line.strip()]
+                start_x = Inches(0.5)
+                start_y = Inches(1.5)
+                card_width = (prs.slide_width - Inches(2)) / 3
+                card_height = Inches(1.5)
 
-                p.font.size = Pt(18)
-                p.font.color.rgb = TEXT_DIM
-                p.alignment = PP_ALIGN.LEFT
+                for j, item in enumerate(items[:6]):
+                    row = j // 3
+                    col = j % 3
+                    card = slide.shapes.add_shape(
+                        1, # Rectangle
+                        start_x + col * (card_width + Inches(0.2)),
+                        start_y + row * (card_height + Inches(0.2)),
+                        card_width, card_height
+                    )
+                    card.fill.solid()
+                    card.fill.fore_color.rgb = RGBColor(30, 41, 59) # slate-800
+                    card.line.color.rgb = ACCENT_COLOR
+
+                    tf = card.text_frame
+                    tf.word_wrap = True
+                    p_card = tf.paragraphs[0]
+                    p_card.text = item.lstrip('-*• ').strip()
+                    p_card.font.size = Pt(14)
+                    p_card.font.color.rgb = TEXT_DIM
+                    p_card.alignment = PP_ALIGN.LEFT
+
+            elif layout_type == "text":
+                # Content
+                content_box = slide.shapes.add_textbox(
+                    Inches(0.5), Inches(1.2), prs.slide_width - Inches(1), prs.slide_height - Inches(1.8)
+                )
+                content_frame = content_box.text_frame
+                content_frame.word_wrap = True
+
+                lines = content_str.split('\n')
+                for j, line in enumerate(lines):
+                    line_text = line.strip()
+                    if not line_text and j > 0: continue # Skip empty lines except possibly first
+
+                    if j == 0:
+                        p = content_frame.paragraphs[0]
+                    else:
+                        p = content_frame.add_paragraph()
+
+                    # Basic bullet indentation logic
+                    if line_text.startswith(('-', '*', '•')):
+                        p.level = 1
+                        line_text = line_text[1:].strip()
+                    else:
+                        p.level = 0
+
+                    run = p.add_run()
+                    run.text = line_text
+                    run.font.size = Pt(20) # Slightly larger font for better readability
+                    run.font.color.rgb = TEXT_DIM
+                    p.alignment = PP_ALIGN.LEFT
+                    p.space_after = Pt(10) # Add some spacing between paragraphs
 
     pptx_io = io.BytesIO()
     prs.save(pptx_io)
