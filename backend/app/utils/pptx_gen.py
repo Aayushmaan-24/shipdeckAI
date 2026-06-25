@@ -20,6 +20,7 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
     ACCENT_COLOR = RGBColor(37, 99, 235) # blue-600
     TEXT_MAIN = RGBColor(255, 255, 255) # white
     TEXT_DIM = RGBColor(203, 213, 225)  # slate-300
+    CARD_BG = RGBColor(30, 41, 59)      # slate-800
 
     for i, slide_data in enumerate(slides_data):
         # Restore fallback for title
@@ -54,10 +55,9 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
             title_frame.word_wrap = True
 
             p = title_frame.paragraphs[0]
-            # Set color at RUN level for extra safety
             run = p.add_run()
             run.text = title_str
-            run.font.size = Pt(48)
+            run.font.size = Pt(44)
             run.font.bold = True
             run.font.color.rgb = TEXT_MAIN
             p.alignment = PP_ALIGN.CENTER
@@ -104,12 +104,12 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
             if layout_type == "architecture":
                 # Render simple architecture diagram
                 components = [line.strip() for line in content_str.split('\n') if line.strip()]
-                if len(components) > 3:
-                    box_width = Inches(2)
-                    box_height = Inches(1)
+                if len(components) > 1:
+                    box_width = Inches(2.2)
+                    box_height = Inches(1.2)
                     start_x = Inches(0.5)
-                    start_y = Inches(2.5)
-                    spacing = Inches(0.5)
+                    start_y = Inches(2.2)
+                    spacing = Inches(0.3)
 
                     for j, comp in enumerate(components[:4]):
                         shape = slide.shapes.add_shape(
@@ -119,22 +119,26 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
                         shape.fill.solid()
                         shape.fill.fore_color.rgb = ACCENT_COLOR
                         shape.line.color.rgb = TEXT_MAIN
+                        shape.line.width = Pt(1.5)
 
                         tf = shape.text_frame
-                        tf.text = comp
-                        tf.paragraphs[0].font.size = Pt(14)
-                        tf.paragraphs[0].font.color.rgb = TEXT_MAIN
-                        tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+                        tf.word_wrap = True
+                        p_comp = tf.paragraphs[0]
+                        p_comp.text = comp
+                        p_comp.font.size = Pt(14)
+                        p_comp.font.bold = True
+                        p_comp.font.color.rgb = TEXT_MAIN
+                        p_comp.alignment = PP_ALIGN.CENTER
                 else:
-                    layout_type = "text" # fallback
+                    layout_type = "text"
 
             if layout_type == "grid":
                 # Render cards
                 items = [line.strip() for line in content_str.split('\n') if line.strip()]
                 start_x = Inches(0.5)
                 start_y = Inches(1.5)
-                card_width = (prs.slide_width - Inches(2)) / 3
-                card_height = Inches(1.5)
+                card_width = (prs.slide_width - Inches(1.5)) / 3
+                card_height = Inches(1.6)
 
                 for j, item in enumerate(items[:6]):
                     row = j // 3
@@ -146,8 +150,9 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
                         card_width, card_height
                     )
                     card.fill.solid()
-                    card.fill.fore_color.rgb = RGBColor(30, 41, 59) # slate-800
+                    card.fill.fore_color.rgb = CARD_BG
                     card.line.color.rgb = ACCENT_COLOR
+                    card.line.width = Pt(1.5)
 
                     tf = card.text_frame
                     tf.word_wrap = True
@@ -168,14 +173,13 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
                 lines = content_str.split('\n')
                 for j, line in enumerate(lines):
                     line_text = line.strip()
-                    if not line_text and j > 0: continue # Skip empty lines except possibly first
+                    if not line_text and j > 0: continue
 
                     if j == 0:
                         p = content_frame.paragraphs[0]
                     else:
                         p = content_frame.add_paragraph()
 
-                    # Basic bullet indentation logic
                     if line_text.startswith(('-', '*', '•')):
                         p.level = 1
                         line_text = line_text[1:].strip()
@@ -184,10 +188,10 @@ def generate_pptx(slides_data: List[Dict[str, Any]]) -> io.BytesIO:
 
                     run = p.add_run()
                     run.text = line_text
-                    run.font.size = Pt(20) # Slightly larger font for better readability
+                    run.font.size = Pt(18)
                     run.font.color.rgb = TEXT_DIM
                     p.alignment = PP_ALIGN.LEFT
-                    p.space_after = Pt(10) # Add some spacing between paragraphs
+                    p.space_after = Pt(12)
 
     pptx_io = io.BytesIO()
     prs.save(pptx_io)
