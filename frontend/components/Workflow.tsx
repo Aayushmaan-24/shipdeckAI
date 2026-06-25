@@ -27,7 +27,7 @@ const steps = [
 
 export function Workflow() {
   return (
-    <section className="py-20 border-t border-slate-900 bg-slate-950">
+    <section id="workflow" className="py-20 border-t border-slate-900 bg-slate-950 scroll-mt-20">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-12">
           <div className="max-w-md">

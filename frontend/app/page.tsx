@@ -158,12 +158,16 @@ export default function Home() {
             <span className="text-xl font-bold tracking-tight">ShipDeck</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-            <a href="#" className="hover:text-white transition-colors">How it works</a>
-            <a href="#" className="hover:text-white transition-colors">Features</a>
-            <a href="#" className="hover:text-white transition-colors">Showcase</a>
+            <a href="#workflow" className="hover:text-white transition-colors">How it works</a>
+            <a href="#features" className="hover:text-white transition-colors">Features</a>
+            {slides.length > 0 && (
+              <a href="#showcase" className="hover:text-white transition-colors">Showcase</a>
+            )}
           </div>
-          <Button variant="ghost" size="sm" className="hidden sm:flex text-slate-400 hover:text-white">
-            <Github className="mr-2 h-4 w-4" /> v1.0
+          <Button asChild variant="ghost" size="sm" className="hidden sm:flex text-slate-400 hover:text-white">
+            <a href="https://github.com/Aayushmaan-24/shipdeckAI" target="_blank" rel="noopener noreferrer">
+              <Github className="mr-2 h-4 w-4" /> v1.0
+            </a>
           </Button>
         </div>
       </nav>
@@ -171,7 +175,7 @@ export default function Home() {
       <main>
         <Hero />
 
-        <section id="generator" className="container mx-auto px-6 py-12">
+        <section id="generator" className="container mx-auto px-6 py-12 scroll-mt-20">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -270,9 +274,10 @@ export default function Home() {
         <AnimatePresence>
           {slides.length > 0 && (
             <motion.section
+              id="showcase"
+              className="container mx-auto px-6 py-12 scroll-mt-20"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="container mx-auto px-6 py-12"
             >
               <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
                 <div>
@@ -343,7 +348,7 @@ export default function Home() {
           <div className="flex items-center gap-6 text-sm text-slate-400">
             <a href="#" className="hover:text-white">Privacy</a>
             <a href="#" className="hover:text-white">Terms</a>
-            <a href="https://github.com" className="hover:text-white flex items-center gap-1">
+            <a href="https://github.com/Aayushmaan-24/" target="_blank" rel="noopener noreferrer" className="hover:text-white flex items-center gap-1">
               <Github className="h-4 w-4" /> GitHub
             </a>
           </div>

@@ -26,11 +26,15 @@ export function Hero() {
             ShipDeck uses multi-agent AI to analyze your GitHub repository and craft a professional, data-driven pitch deck that captures your project&apos;s essence.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="rounded-full px-8 h-12 text-base font-semibold group">
-              Start Building <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <Button asChild size="lg" className="rounded-full px-8 h-12 text-base font-semibold group">
+              <a href="#generator">
+                Start Building <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </a>
             </Button>
-            <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-base font-semibold border-slate-800 bg-slate-950/50 hover:bg-slate-900 transition-colors">
-              <Github className="mr-2 h-5 w-5" /> View on GitHub
+            <Button asChild size="lg" variant="outline" className="rounded-full px-8 h-12 text-base font-semibold border-slate-800 bg-slate-950/50 hover:bg-slate-900 transition-colors">
+              <a href="https://github.com/Aayushmaan-24/shipdeckAI" target="_blank" rel="noopener noreferrer">
+                <Github className="mr-2 h-5 w-5" /> View on GitHub
+              </a>
             </Button>
           </div>
         </motion.div>
