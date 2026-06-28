@@ -7,13 +7,6 @@ from typing import List, Dict, Any
 from pydantic import BaseModel, Field
 
 
-def parse_json_from_llm(content: str):
-    """Parse JSON from LLM output, stripping markdown code fences if present."""
-    text = content.strip()
-    fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
-    if fence_match:
-        text = fence_match.group(1).strip()
-    return json.loads(text)
 from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
