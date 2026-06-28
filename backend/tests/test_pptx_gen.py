@@ -45,7 +45,7 @@ def test_generate_pptx_properties():
             assert p.text == "Main Title"
             # Check run-level formatting
             run = p.runs[0]
-            assert run.font.size == Pt(48)
+            assert run.font.size == Pt(44)
             assert run.font.color.rgb == TEXT_MAIN_EXPECTED
 
             # Subtitle
@@ -71,7 +71,7 @@ def test_generate_pptx_properties():
             content_frame = content_box.text_frame
             assert content_frame.word_wrap is True
             assert len(content_frame.paragraphs) == 2
-            assert content_frame.paragraphs[0].runs[0].font.size == Pt(20)
+            assert content_frame.paragraphs[0].runs[0].font.size == Pt(18)
             assert content_frame.paragraphs[0].runs[0].font.color.rgb == TEXT_DIM_EXPECTED
             assert content_frame.paragraphs[0].level == 1
         elif i == 2:
